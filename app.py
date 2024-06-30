@@ -144,9 +144,7 @@ def train_pipeline(X_train, y_train):
     return pipeline
 
 
-feature_selection_result = Feature_Selection.feature_selection(
-    selector=selector, features=features
-)
+feature_selection_result = pd.Series()
 
 selected_features = feature_selection_result
 
@@ -155,9 +153,25 @@ X_train, X_test, y_train, y_test = split_data(features=features, target=target)
 pipeline = train_pipeline(X_train, y_train)
 
 if page == "EDA":
-    EDA.eda(data=data, features=features)
+    st.title('Exploratory Data Analysis (EDA)')
+    all_data = st.checkbox('Use All Data for EDA', value=True, key='eda_all_data')
+    if (all_data):
+        all_data = EDA.perform_eda(data=data)
+    else:
+        copy_data = features[selected_features].copy()
+        copy_data['HealthImpactClass'] = target
+        EDA.perform_eda(data=copy_data)
 elif page == "Feature Selection":
     st.title("Feature Selection")
+    method = st.selectbox("", ['select features automatically', 'select features manually'])
+    if method == 'select features automatically':
+        result = Feature_Selection.feature_selection(
+            selector=selector, features=features
+        )
+    else:
+        selected_features = st.multiselect("Select Features", features.columns)
+        result = pd.Series(selected_features)
+    feature_selection_result = result
     st.write(feature_selection_result)
 elif page == "Model Score":
     Model_Score.model_score(

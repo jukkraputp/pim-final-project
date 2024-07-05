@@ -21,6 +21,9 @@ import _pages.Feature_Selection as Feature_Selection
 import _pages.Model_Score as Model_Score
 import _pages.Predictor as Predictor
 
+st.set_page_config(page_title="Air Quality Health Impact", layout="wide")
+
+st.title("Air Quality Health Impact")
 
 # Load the data
 @st.cache_data
@@ -58,7 +61,7 @@ def get_target(data):
 target = get_target(data)
 
 
-# st.title("Air Quality Health Impact Data")
+# st.header("Air Quality Health Impact Data")
 # st.write(data)
 
 # Streamlit navigation
@@ -144,33 +147,36 @@ def train_pipeline(X_train, y_train):
     return pipeline
 
 
-feature_selection_result = pd.Series()
-
-selected_features = feature_selection_result
+if "feature_selection_result" not in st.session_state:
+    st.session_state['feature_selection_result'] = pd.Series()
+    
+if "selected_features" not in st.session_state:
+    st.session_state['selected_features'] = st.session_state['feature_selection_result']
 
 X_train, X_test, y_train, y_test = split_data(features=features, target=target)
 
 pipeline = train_pipeline(X_train, y_train)
 
 if page == "EDA":
-    st.title('Exploratory Data Analysis (EDA)')
+    st.header('Exploratory Data Analysis (EDA)')
     all_data = st.checkbox('Use All Data for EDA', value=True, key='eda_all_data')
     if (all_data):
         all_data = EDA.perform_eda(data=data)
     else:
-        copy_data = features[selected_features].copy()
+        copy_data = features[st.session_state['selected_features']].copy()
         copy_data['HealthImpactClass'] = target
         EDA.perform_eda(data=copy_data)
 elif page == "Feature Selection":
-    st.title("Feature Selection")
-    method = st.selectbox("", ['select features automatically', 'select features manually'])
+    st.header("Feature Selection")
+    method = st.selectbox("Method", ['select features automatically', 'select features manually'], label_visibility="hidden")
+    score_threshold = st.slider("Score Threshold", min_value=0.0, max_value=10.0, value=0.5)
     if method == 'select features automatically':
         result = Feature_Selection.feature_selection(
-            selector=selector, features=features
+            _selector=selector, features=features, score_threshold=score_threshold
         )
     else:
-        selected_features = st.multiselect("Select Features", features.columns)
-        result = pd.Series(selected_features)
+        st.session_state['selected_features'] = st.multiselect("Select Features", features.columns)
+        result = pd.Series(st.session_state['selected_features'])
     feature_selection_result = result
     st.write(feature_selection_result)
 elif page == "Model Score":
@@ -184,5 +190,5 @@ elif page == "Model Score":
 elif page == "Predictor":
     Predictor.predictor(
         pipeline=pipeline,
-        selected_features=features[selected_features],
+        selected_features=features[st.session_state['selected_features']],
     )

@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 def predictor(pipeline, selected_features):
-    st.title("Predictor")
+    st.header("Predictor")
     st.write("Enter new data to make a prediction:")
     best_model = st.checkbox("Use our best model")
 

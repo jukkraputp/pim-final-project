@@ -1,14 +1,15 @@
+import streamlit as st
 import pandas as pd
 
-
-def feature_selection(selector, features):
+@st.cache_data
+def feature_selection(_selector, features, score_threshold):
     try:
-        scores = selector.scores_
+        scores = _selector.scores_
         feature_scores = pd.DataFrame({"Feature": features.columns, "Score": scores})
         selected_feature = feature_scores.sort_values(by="Score", ascending=False)
-        return selected_feature[selected_feature["Score"] >= 0.01]['Feature']
+        return selected_feature[selected_feature["Score"] >= score_threshold]['Feature']
     except Exception as e:
-        # Fit the selector to your data (X_train is your feature matrix)
-        selector.transform(features)
-        return features[selector.get_feature_names_out()].columns
+        # Fit the _selector to your data (X_train is your feature matrix)
+        _selector.transform(features)
+        return features[_selector.get_feature_names_out()].columns
     

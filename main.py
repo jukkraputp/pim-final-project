@@ -139,7 +139,7 @@ pipeline = train_pipeline(X_train=X_train, y_train=y_train)
 
 # Define pages
 def eda():
-    st.title("Exploratory Data Analysis")
+    st.header("Exploratory Data Analysis")
     st.write(data.describe())
     st.write(data.head())
 
@@ -168,14 +168,14 @@ def model_score():
     pipeline.fit(X_train_selected, y_train)
     X_test_selected = X_test[feature_selection()[1]["Feature"].tolist()]
     y_pred = pipeline.predict(X_test_selected)
-    st.title("Model Score")
+    st.header("Model Score")
     st.write("Accuracy:", accuracy_score(y_test, y_pred))
     st.write("Classification Report:")
     st.text(classification_report(y_test, y_pred))
 
 
 def predictor():
-    st.title("Predictor")
+    st.header("Predictor")
     st.write("Enter new data to make a prediction:")
     selected_features = feature_selection()[1]["Feature"].tolist()
     X_train_selected = X_train[selected_features]
@@ -280,7 +280,7 @@ page = st.sidebar.radio(
 if page == "EDA":
     eda()
 elif page == "Feature Selection":
-    st.title("Feature Selection")
+    st.header("Feature Selection")
     st.write(feature_selection()[0])
 elif page == "Model Score":
     model_score()

@@ -25,6 +25,7 @@ st.set_page_config(page_title="Air Quality Health Impact", layout="wide")
 
 st.title("Air Quality Health Impact")
 
+
 # Load the data
 @st.cache_data
 def load_data():
@@ -114,16 +115,18 @@ feature_selection_mapper = {
 }
 
 if "feature_selection_result" not in st.session_state:
-    st.session_state['feature_selection_result'] = features.columns
-    
+    st.session_state["feature_selection_result"] = features.columns
+
 if "selected_features" not in st.session_state:
-    st.session_state['selected_features'] = st.session_state['feature_selection_result']
-    
-if st.session_state['selected_features'].size == 0:
-    st.session_state['selected_features'] = pd.Series(st.session_state['feature_selection_result'])
-    
+    st.session_state["selected_features"] = st.session_state["feature_selection_result"]
+
+if st.session_state["selected_features"].size == 0:
+    st.session_state["selected_features"] = pd.Series(
+        st.session_state["feature_selection_result"]
+    )
+
 selector = feature_selection_mapper[selected_feature_selection]
-selector.fit_transform(features[st.session_state['selected_features']], target)
+selector.fit_transform(features[st.session_state["selected_features"]], target)
 
 
 # Define the pipeline
@@ -155,35 +158,57 @@ def train_pipeline(X_train, y_train):
     pipeline.fit(X_train, y_train)
     return pipeline
 
-X_train, X_test, y_train, y_test = split_data(features=features[st.session_state['selected_features']], target=target)
+
+X_train, X_test, y_train, y_test = split_data(
+    features=features[st.session_state["selected_features"]], target=target
+)
 
 pipeline = train_pipeline(X_train, y_train)
 
 if "score_threshold" not in st.session_state:
-    st.session_state['score_threshold'] = 0.5
+    st.session_state["score_threshold"] = 0.5
+
+if "method" not in st.session_state:
+    st.session_state["method"] = 0
 
 if page == "EDA":
-    st.header('Exploratory Data Analysis (EDA)')
-    all_data = st.checkbox('Use All Data for EDA', value=True, key='eda_all_data')
-    if (all_data):
+    st.header("Exploratory Data Analysis (EDA)")
+    all_data = st.checkbox("Use All Data for EDA", value=True, key="eda_all_data")
+    if all_data:
         all_data = EDA.perform_eda(data=data)
     else:
-        copy_data = features[st.session_state['selected_features']].copy()
-        copy_data['HealthImpactClass'] = target
+        copy_data = features[st.session_state["selected_features"]].copy()
+        copy_data["HealthImpactClass"] = target
         EDA.perform_eda(data=copy_data)
 elif page == "Feature Selection":
     st.header("Feature Selection")
-    method = st.selectbox("Method", ['select features automatically', 'select features manually'], label_visibility="hidden")
-    st.session_state['score_threshold'] = st.slider("Score Threshold", min_value=0.0, max_value=10.0, value=st.session_state['score_threshold'])
-    if method == 'select features automatically':
+    method = st.selectbox(
+        "Method",
+        ["select features automatically", "select features manually"],
+        label_visibility="hidden",
+        index=st.session_state["method"],
+    )
+    st.session_state["score_threshold"] = st.slider(
+        "Score Threshold",
+        min_value=0.0,
+        max_value=10.0,
+        value=st.session_state["score_threshold"],
+    )
+    if method == "select features automatically":
+        st.session_state["method"] = 0
         result = Feature_Selection.feature_selection(
-            _selector=selector, features=features, score_threshold=st.session_state['score_threshold']
+            _selector=selector,
+            features=features,
+            score_threshold=st.session_state["score_threshold"],
         )
     else:
-        st.session_state['selected_features'] = st.multiselect("Select Features", features.columns)
-        result = pd.Series(st.session_state['selected_features'])
+        st.session_state["method"] = 1
+        st.session_state["selected_features"] = st.multiselect(
+            "Select Features", features.columns
+        )
+        result = pd.Series(st.session_state["selected_features"])
     feature_selection_result = result
-    st.session_state['selected_features'] = feature_selection_result
+    st.session_state["selected_features"] = feature_selection_result
     st.write(feature_selection_result)
 elif page == "Model Score":
     Model_Score.model_score(
@@ -196,5 +221,5 @@ elif page == "Model Score":
 elif page == "Predictor":
     Predictor.predictor(
         pipeline=pipeline,
-        selected_features=features[st.session_state['selected_features']],
+        selected_features=features[st.session_state["selected_features"]],
     )

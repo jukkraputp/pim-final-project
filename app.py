@@ -153,7 +153,7 @@ if "feature_selection_result" not in st.session_state:
 if "selected_features" not in st.session_state:
     st.session_state['selected_features'] = st.session_state['feature_selection_result']
 
-X_train, X_test, y_train, y_test = split_data(features=features, target=target)
+X_train, X_test, y_train, y_test = split_data(features=st.session_state['selected_features'], target=target)
 
 pipeline = train_pipeline(X_train, y_train)
 

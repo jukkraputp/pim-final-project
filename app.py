@@ -113,8 +113,17 @@ feature_selection_mapper = {
     ),
 }
 
+if "feature_selection_result" not in st.session_state:
+    st.session_state['feature_selection_result'] = features.columns
+    
+if "selected_features" not in st.session_state:
+    st.session_state['selected_features'] = st.session_state['feature_selection_result']
+    
+if st.session_state['selected_features'].size == 0:
+    st.session_state['selected_features'] = pd.Series(st.session_state['feature_selection_result'])
+    
 selector = feature_selection_mapper[selected_feature_selection]
-selector.fit_transform(features, target)
+selector.fit_transform(features[st.session_state['selected_features']], target)
 
 
 # Define the pipeline
@@ -146,14 +155,7 @@ def train_pipeline(X_train, y_train):
     pipeline.fit(X_train, y_train)
     return pipeline
 
-
-if "feature_selection_result" not in st.session_state:
-    st.session_state['feature_selection_result'] = pd.Series()
-    
-if "selected_features" not in st.session_state:
-    st.session_state['selected_features'] = st.session_state['feature_selection_result']
-
-X_train, X_test, y_train, y_test = split_data(features=features, target=target)
+X_train, X_test, y_train, y_test = split_data(features=features[st.session_state['selected_features']], target=target)
 
 pipeline = train_pipeline(X_train, y_train)
 

@@ -157,6 +157,9 @@ X_train, X_test, y_train, y_test = split_data(features=features, target=target)
 
 pipeline = train_pipeline(X_train, y_train)
 
+if "score_threshold" not in st.session_state:
+    st.session_state['score_threshold'] = 0.5
+
 if page == "EDA":
     st.header('Exploratory Data Analysis (EDA)')
     all_data = st.checkbox('Use All Data for EDA', value=True, key='eda_all_data')
@@ -169,15 +172,16 @@ if page == "EDA":
 elif page == "Feature Selection":
     st.header("Feature Selection")
     method = st.selectbox("Method", ['select features automatically', 'select features manually'], label_visibility="hidden")
-    score_threshold = st.slider("Score Threshold", min_value=0.0, max_value=10.0, value=0.5)
+    st.session_state['score_threshold'] = st.slider("Score Threshold", min_value=0.0, max_value=10.0, value=st.session_state['score_threshold'])
     if method == 'select features automatically':
         result = Feature_Selection.feature_selection(
-            _selector=selector, features=features, score_threshold=score_threshold
+            _selector=selector, features=features, score_threshold=st.session_state['score_threshold']
         )
     else:
         st.session_state['selected_features'] = st.multiselect("Select Features", features.columns)
         result = pd.Series(st.session_state['selected_features'])
     feature_selection_result = result
+    st.session_state['selected_features'] = feature_selection_result
     st.write(feature_selection_result)
 elif page == "Model Score":
     Model_Score.model_score(

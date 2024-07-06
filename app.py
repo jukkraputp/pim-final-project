@@ -203,9 +203,10 @@ elif page == "Feature Selection":
         )
     else:
         st.session_state["method"] = 1
-        st.session_state["selected_features"] = st.multiselect(
+        new_selected_features = st.multiselect(
             "Select Features", features.columns
         )
+        st.session_state['selected_features'] = new_selected_features
         result = pd.Series(st.session_state["selected_features"])
     feature_selection_result = result
     st.session_state["selected_features"] = feature_selection_result
